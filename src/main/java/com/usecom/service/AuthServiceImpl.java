@@ -17,10 +17,12 @@ import org.springframework.stereotype.Service;
 import com.usecom.config.JwtProvider;
 import com.usecom.domain.USER_ROLE;
 import com.usecom.entity.Cart;
+import com.usecom.entity.Seller;
 import com.usecom.entity.User;
 import com.usecom.entity.VarificationCode;
 import com.usecom.exception.InvalidOtpException;
 import com.usecom.repository.CartRepository;
+import com.usecom.repository.SellerRepository;
 import com.usecom.repository.UserRepository;
 import com.usecom.repository.VarificationCodeRepository;
 import com.usecom.request.LoginRequest;
@@ -41,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
     private final VarificationCodeRepository varificationCodeRepository;
     private final EmailService emailService;
     private final CustomUserServiceImpl customUserServiceImpl;
+    private final SellerRepository sellerRepository;
 
     @Override
     public String createUser(SignUpRequest req) {
@@ -78,14 +81,24 @@ public class AuthServiceImpl implements AuthService {
     }
 
 	@Override
-	public void sendLoginAndSignupOtp(String email) throws Exception {
-		String SINGING_PREFIX = "signin_";
+	public void sendLoginAndSignupOtp(String email, USER_ROLE role) throws Exception {
+		String SINGING_PREFIX = "signing_";
+		String SELLER_PREFIX = "seller_";
+		
 		if(email.startsWith(SINGING_PREFIX)) {
 			email = email.substring(SINGING_PREFIX.length());
-			User  user = userRepository.findByEmail(email);
-			if(user==null) {
-				throw new Exception("user not exist with provided  email");
+			if(role.equals(USER_ROLE.ROLE_SELLER)) {
+				Seller seller = sellerRepository.findByEmail(email);
+				if(seller == null) {
+					throw new Exception("seller not found with email - "+email);
+				}
 			}
+			else {
+				User  user = userRepository.findByEmail(email);
+				if(user==null) {
+					throw new Exception("user not exist with provided  email");
+			}
+
 		}
 		VarificationCode isExist = varificationCodeRepository.findByEmail(email);
 		if(isExist != null) {
@@ -102,6 +115,7 @@ public class AuthServiceImpl implements AuthService {
 		String text = "your login/signup otp is - " + otp;
 		
 		emailService.sendVarificationOtpEmail(email, otp, subject, text);
+		}
 		
 	}
 

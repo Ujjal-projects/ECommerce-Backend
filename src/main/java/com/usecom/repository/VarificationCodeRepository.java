@@ -7,4 +7,5 @@ import com.usecom.entity.VarificationCode;
 public interface VarificationCodeRepository  extends JpaRepository<VarificationCode, Long>{
 
 	VarificationCode findByEmail(String email);
+	VarificationCode findByOtp(String otp);
 }

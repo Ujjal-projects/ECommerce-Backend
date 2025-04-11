@@ -80,44 +80,46 @@ public class AuthServiceImpl implements AuthService {
         return jwtProvider.generateToken(authentication);
     }
 
-	@Override
-	public void sendLoginAndSignupOtp(String email, USER_ROLE role) throws Exception {
-		String SINGING_PREFIX = "signing_";
-		String SELLER_PREFIX = "seller_";
-		
-		if(email.startsWith(SINGING_PREFIX)) {
-			email = email.substring(SINGING_PREFIX.length());
-			if(role.equals(USER_ROLE.ROLE_SELLER)) {
-				Seller seller = sellerRepository.findByEmail(email);
-				if(seller == null) {
-					throw new Exception("seller not found with email - "+email);
-				}
-			}
-			else {
-				User  user = userRepository.findByEmail(email);
-				if(user==null) {
-					throw new Exception("user not exist with provided  email");
-			}
+    @Override
+    public void sendLoginAndSignupOtp(String email, USER_ROLE role) throws Exception {
+        String SIGNING_PREFIX = "signing_";
+        boolean isSignup = email.startsWith(SIGNING_PREFIX);
 
-		}
-		VarificationCode isExist = varificationCodeRepository.findByEmail(email);
-		if(isExist != null) {
-			varificationCodeRepository.delete(isExist);
-		}
-		String otp = OtpUtil.generateOtp();
-		
-		VarificationCode varificationCode = new VarificationCode();
-		varificationCode.setOtp(otp);
-		varificationCode.setEmail(email);
-		varificationCodeRepository.save(varificationCode);
-		
-		String subject = "MS Enterprice login/signup otp";
-		String text = "your login/signup otp is - " + otp;
-		
-		emailService.sendVarificationOtpEmail(email, otp, subject, text);
-		}
-		
-	}
+        if (isSignup) {
+            email = email.substring(SIGNING_PREFIX.length());
+        }
+
+        if (role.equals(USER_ROLE.ROLE_SELLER)) {
+            Seller seller = sellerRepository.findByEmail(email);
+            if (seller == null && !isSignup) {
+                throw new Exception("Seller not found with email - " + email);
+            }
+        } else {
+            User user = userRepository.findByEmail(email);
+            if (user == null && !isSignup) {
+                throw new Exception("User not found with email - " + email);
+            }
+        }
+
+        // Clean up old OTP if any
+        VarificationCode existingCode = varificationCodeRepository.findByEmail(email);
+        if (existingCode != null) {
+            varificationCodeRepository.delete(existingCode);
+        }
+
+        // Generate and save new OTP
+        String otp = OtpUtil.generateOtp();
+        VarificationCode varificationCode = new VarificationCode();
+        varificationCode.setOtp(otp);
+        varificationCode.setEmail(email);
+        varificationCodeRepository.save(varificationCode);
+
+        // Send OTP
+        String subject = "MS Enterprise login/signup OTP";
+        String text = "Your login/signup OTP is - " + otp;
+        emailService.sendVarificationOtpEmail(email, otp, subject, text);
+    }
+
 
 	@Override
 	public AuthResponse singing(LoginRequest req) {

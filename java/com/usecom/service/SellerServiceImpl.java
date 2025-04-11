@@ -33,7 +33,7 @@ public class SellerServiceImpl implements SellerService{
 	@Override
 	public Seller creteSeller(Seller seller) throws Exception {
 		Seller sellerExist = sellerRepository.findByEmail(seller.getEmail());
-		if(sellerExist == null) {
+		if(sellerExist != null) {
 			throw new Exception("seller alredy exist, used diffarent email");
 		}
 		Address savedAddress = addressRepository.save(seller.getPickupAddress());
@@ -64,7 +64,7 @@ public class SellerServiceImpl implements SellerService{
 		if(seller == null) {
 			throw new Exception("seller not found");
 		}
-		return null;
+		return seller;
 	}
 
 	@Override

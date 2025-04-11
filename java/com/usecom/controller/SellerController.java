@@ -50,6 +50,7 @@ public class SellerController {
 		String otp = req.getOtp();
 		String email = req.getEmail();
 
+		
 		req.setEmail("seller_" + email);
 		AuthResponse authResponse = authService.singing(req);
 		return ResponseEntity.ok(authResponse);
@@ -88,7 +89,7 @@ public class SellerController {
 		return new ResponseEntity<>(savedSeller, HttpStatus.CREATED);
 	}
 	
-	@GetMapping("/{id")
+	@GetMapping("/{id}")
 	public ResponseEntity<Seller> getSellerById(@PathVariable Long id) throws Exception{
 		Seller seller = sellerService.getSellerById(id);
 		return new ResponseEntity<>(seller, HttpStatus.OK);

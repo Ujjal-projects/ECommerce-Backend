@@ -145,6 +145,13 @@ public class AuthServiceImpl implements AuthService {
 
 	private Authentication authenticate(String username, String otp) {
 		UserDetails userDetails= customUserServiceImpl.loadUserByUsername(username);
+//		username = username.substring(SINGING_PREFIX.length);
+		String SELLER_PRIFIX = "seller_";
+		
+		if(username.startsWith(SELLER_PRIFIX)) {
+			username = username.substring(SELLER_PRIFIX.length());
+		}
+		
 		if(userDetails == null) {
 			throw new BadCredentialsException("invalid username");
 		}
